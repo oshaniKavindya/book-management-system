@@ -1,0 +1,159 @@
+<div class="page-wrapper">
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>{{ isEditMode ? "Edit Publication" : "Create New Book" }}</h1>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="form-card">
+      <div class="alert alert-error" *ngIf="errorMessage">
+        <span class="alert-content">
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          {{ errorMessage }}
+        </span>
+      </div>
+
+      <form #bookForm="ngForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="title">Book Title <span class="required">*</span></label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            [(ngModel)]="book.title"
+            required
+            #titleField="ngModel"
+            placeholder="e.g. Clean Code"
+            class="form-input"
+            [class.input-error]="titleField.invalid && titleField.touched"
+          />
+          <span
+            class="error-msg"
+            *ngIf="titleField.invalid && titleField.touched"
+            >Title is required.</span
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="author">Author <span class="required">*</span></label>
+          <input
+            type="text"
+            id="author"
+            name="author"
+            [(ngModel)]="book.author"
+            required
+            #authorField="ngModel"
+            placeholder="e.g. Robert C. Martin"
+            class="form-input"
+            [class.input-error]="authorField.invalid && authorField.touched"
+          />
+          <span
+            class="error-msg"
+            *ngIf="authorField.invalid && authorField.touched"
+            >Author is required.</span
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="isbn">ISBN Code <span class="required">*</span></label>
+          <input
+            type="text"
+            id="isbn"
+            name="isbn"
+            [(ngModel)]="book.isbn"
+            required
+            #isbnField="ngModel"
+            placeholder="978-..."
+            class="form-input"
+            [class.input-error]="isbnField.invalid && isbnField.touched"
+          />
+          <span class="error-msg" *ngIf="isbnField.invalid && isbnField.touched"
+            >ISBN is required.</span
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="publicationDate"
+            >Release Date <span class="required">*</span></label
+          >
+          <input
+            type="date"
+            id="publicationDate"
+            name="publicationDate"
+            [(ngModel)]="book.publicationDate"
+            required
+            #dateField="ngModel"
+            class="form-input"
+            [class.input-error]="dateField.invalid && dateField.touched"
+          />
+          <span class="error-msg" *ngIf="dateField.invalid && dateField.touched"
+            >Release date is required.</span
+          >
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-cancel" (click)="cancel()">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn btn-submit"
+            [disabled]="bookForm.invalid || submitting"
+          >
+            <span *ngIf="!submitting">
+              {{ isEditMode ? "Save Changes" : "Publish Book" }}
+            </span>
+            <span *ngIf="submitting" class="btn-content">
+              <svg
+                class="icon icon-spin"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+              >
+                <path d="M21 12a9 9 0 1 1-6.22-8.56"></path>
+              </svg>
+              Processing...
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <div
+    class="confirm-backdrop"
+    *ngIf="showUpdateConfirm"
+    (click)="closeUpdateConfirm()"
+  >
+    <div class="confirm-dialog" (click)="$event.stopPropagation()">
+      <h3>Confirm Update</h3>
+      <p class="confirm-message">
+        Are you sure you want to save the changes for
+        <strong>{{ book.title }}</strong
+        >?
+      </p>
+      <div class="confirm-actions">
+        <button class="btn btn-cancel-confirm" (click)="closeUpdateConfirm()">
+          Discard
+        </button>
+        <button class="btn btn-confirm" (click)="confirmUpdate()">
+          Yes, Update
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

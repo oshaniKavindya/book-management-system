@@ -1,0 +1,18 @@
+# Frontend
+book-manager-frontend/node_modules/
+book-manager-frontend/dist/
+book-manager-frontend/.angular/
+
+# Backend
+BookApi/bin/
+BookApi/obj/
+
+# IDE / OS
+.vscode/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# Temporary migration backup
+.git-fe-backup/

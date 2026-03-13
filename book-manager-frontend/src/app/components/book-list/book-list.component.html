@@ -1,0 +1,312 @@
+<div class="page-wrapper">
+  <header class="page-header">
+    <div class="header-content">
+      <div class="header-title">
+        <span class="header-icon" aria-hidden="true">
+          <svg
+            class="icon icon-xl"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+          </svg>
+        </span>
+        <h1>Book Manager</h1>
+      </div>
+      <button class="btn btn-add" (click)="openAddDialog()">
+        <svg
+          class="icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Add New Book
+      </button>
+    </div>
+  </header>
+
+  <main class="main-content">
+    @if (toasts().length > 0) {
+      <div class="toast-container">
+        @for (toast of toasts(); track toast.id) {
+          <div
+            class="toast"
+            [class.toast-success]="toast.type === 'success'"
+            [class.toast-error]="toast.type === 'error'"
+            role="alert"
+          >
+            <div class="alert-content">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                @if (toast.type === 'success') {
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                }
+                @if (toast.type === 'error') {
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="8" x2="12" y2="12"></line>
+                  <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                }
+              </svg>
+              <span>{{ toast.message }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert-error">{{ errorMessage() }}</div>
+    }
+
+    @if (!loading() && books().length > 0) {
+      <div class="table-container">
+        <table class="books-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Book Title</th>
+              <th>Author</th>
+              <th>ISBN Code</th>
+              <th>Published</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (book of books(); track book.id) {
+              <tr>
+                <td class="id-cell">{{ book.id }}</td>
+                <td class="title-cell">{{ book.title }}</td>
+                <td>{{ book.author }}</td>
+                <td>
+                  <span class="isbn-cell">{{ book.isbn }}</span>
+                </td>
+                <td>{{ book.publicationDate | date: 'mediumDate' }}</td>
+                <td class="actions-cell">
+                  <button class="btn btn-edit" (click)="openEditDialog(book.id)">Edit</button>
+                  <button class="btn btn-delete" (click)="deleteBook(book.id, book.title)">
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <div class="record-count">Showing {{ books().length }} entries</div>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Syncing library...</p>
+      </div>
+    }
+
+    @if (!loading() && books().length === 0 && !errorMessage()) {
+      <div class="empty-state">
+        <h2>No books found</h2>
+        <p>Add your first book to get started.</p>
+      </div>
+    }
+  </main>
+
+  @if (showDeleteConfirm) {
+    <div class="confirm-backdrop" (click)="closeDeleteConfirm()">
+      <div class="confirm-dialog" (click)="$event.stopPropagation()">
+        <div class="confirm-header">
+          <h3>Confirm Delete</h3>
+        </div>
+        <p class="confirm-message">
+          This will permanently remove
+          <strong>{{ pendingDeleteTitle }}</strong> Record.
+        </p>
+        <div class="confirm-actions">
+          <button class="btn btn-cancel-confirm" (click)="closeDeleteConfirm()">Keep it</button>
+          <button class="btn btn-confirm" (click)="confirmDelete()">Yes, Delete</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+
+
+ <!-- Add / Edit Book Dialog -->
+@if (showFormDialog) {
+  <div class="dialog-backdrop" (click)="closeFormDialog()">
+    <div class="dialog-panel" (click)="$event.stopPropagation()">
+      <div class="dialog-header">
+        <h2>{{ isEditMode ? 'Edit Publication' : 'Add New Book' }}</h2>
+        <button class="dialog-close" (click)="closeFormDialog()" aria-label="Close">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="dialog-body">
+        @if (formError) {
+          <div class="alert alert-error">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            {{ formError }}
+          </div>
+        }
+
+        <form #bookForm="ngForm" (ngSubmit)="onSubmit()">
+          <div class="form-group">
+            <label for="ftitle">Book Title <span class="required">*</span></label>
+            <input
+              type="text"
+              id="ftitle"
+              name="ftitle"
+              [(ngModel)]="formBook.title"
+              required
+              #titleField="ngModel"
+              placeholder="e.g. Clean Code"
+              class="form-input"
+              [class.input-error]="titleField.invalid && titleField.touched"
+            />
+            @if (titleField.invalid && titleField.touched) {
+              <span class="error-msg">Title is required.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="fauthor">Author <span class="required">*</span></label>
+            <input
+              type="text"
+              id="fauthor"
+              name="fauthor"
+              [(ngModel)]="formBook.author"
+              required
+              #authorField="ngModel"
+              placeholder="e.g. Robert C. Martin"
+              class="form-input"
+              [class.input-error]="authorField.invalid && authorField.touched"
+            />
+            @if (authorField.invalid && authorField.touched) {
+              <span class="error-msg">Author is required.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="fisbn">ISBN Code <span class="required">*</span></label>
+            <input
+              type="text"
+              id="fisbn"
+              name="fisbn"
+              [(ngModel)]="formBook.isbn"
+              required
+              #isbnField="ngModel"
+              placeholder="978-..."
+              class="form-input"
+              [class.input-error]="isbnField.invalid && isbnField.touched"
+            />
+            @if (isbnField.invalid && isbnField.touched) {
+              <span class="error-msg">ISBN is required.</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label for="fdate">Release Date <span class="required">*</span></label>
+            <input
+              type="date"
+              id="fdate"
+              name="fdate"
+              [(ngModel)]="formBook.publicationDate"
+              required
+              #dateField="ngModel"
+              class="form-input"
+              [class.input-error]="dateField.invalid && dateField.touched"
+            />
+            @if (dateField.invalid && dateField.touched) {
+              <span class="error-msg">Release date is required.</span>
+            }
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-cancel" (click)="closeFormDialog()">Cancel</button>
+            <button
+              type="submit"
+              class="btn btn-submit"
+              [disabled]="bookForm.invalid || submitting"
+            >
+              @if (!submitting) {
+                <span>{{ isEditMode ? 'Save Changes' : 'Publish Book' }}</span>
+              }
+              @if (submitting) {
+                <span class="btn-content">
+                  <svg
+                    class="icon icon-spin"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                  >
+                    <path d="M21 12a9 9 0 1 1-6.22-8.56"></path>
+                  </svg>
+                  Processing...
+                </span>
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Update Confirm -->
+@if (showUpdateConfirm) {
+  <div class="confirm-backdrop" (click)="closeUpdateConfirm()">
+    <div class="confirm-dialog" (click)="$event.stopPropagation()">
+      <div class="confirm-header">
+        <h3 class="confirm-title-blue">Confirm Update</h3>
+      </div>
+      <p class="confirm-message">
+        Save changes to <strong>{{ formBook.title }}</strong
+        >?
+      </p>
+      <div class="confirm-actions">
+        <button class="btn btn-cancel-confirm" (click)="closeUpdateConfirm()">Discard</button>
+        <button class="btn btn-confirm btn-confirm-blue" (click)="confirmUpdate()">
+          Yes, Update
+        </button>
+      </div>
+    </div>
+  </div>
+}
